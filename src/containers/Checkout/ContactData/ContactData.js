@@ -6,6 +6,8 @@ import cssClasses from './ContactData.css';
 import axios from '../../../axios-orders';
 import Spinner from '../../../components/UI/Spinner/Spinner';
 import Input from '../../../components/UI/Input/Input';
+import withErrorHandler from '../../../hoc/withErrorHandler/withErrorHandler';
+import * as actions from '../../../store/actions/index';
 
 class ContactData extends Component {
     state = {
@@ -93,12 +95,10 @@ class ContactData extends Component {
             },
         },
         formIsValid: false,
-        isLoadingAddOrder: false
     }
 
     orderHandler = (event) => {
         event.preventDefault();
-        this.setState({isLoadingAddOrder: true});
         const formData = {
             price: parseFloat(this.props.totalPrice),
             ingredients: this.props.ings,
@@ -106,30 +106,7 @@ class ContactData extends Component {
         for(let formElementIdentifier in this.state.orderForm) {
             formData[formElementIdentifier] = this.state.orderForm[formElementIdentifier].value;
         }
-        const data = {            
-            query: `
-                mutation createNewOrde ($price: Float!,$deliveryMethod: String!, $email: String!, $name: String!, $country: String!, $street: String!, $zipCode: String!, $ingredients: JSON!){
-                    createNewOrde(price:$price, deliveryMethod:$deliveryMethod, email: $email, name: $name, country: $country, street: $street, zipCode: $zipCode, ingredients: $ingredients)
-                    {
-                    status, msg
-                    
-                    }
-                }
-            `,
-            variables: formData,  
-        };
-        axios.post('/graphql', data)
-        .then(response => {
-            console.log(response);
-            this.setState({
-                isLoadingAddOrder: false
-            });
-            this.props.history.push('/');
-        })
-        .catch(err => {
-            console.log(err);
-            this.setState({isLoadingAddOrder: false,});
-        });
+        this.props.onOrderBurger(formData);        
     }
 
     checkValidity(value, rules) {
@@ -196,7 +173,7 @@ class ContactData extends Component {
                 <Button btnType='Success' disabled={!this.state.formIsValid}>Order</Button>
             </form>
         );
-        if(this.state.isLoadingAddOrder){
+        if(this.props.loading){
             form = <Spinner />
         }
         return (
@@ -210,9 +187,16 @@ class ContactData extends Component {
 
 const mapStateToProps = state => {
     return {
-        ings: state.ingredients,
-        totalPrice: state.totalPrice.toFixed(2).replace(",", ".")
+        ings: state.burgerBuilder.ingredients,
+        totalPrice: state.burgerBuilder.totalPrice.toFixed(2).replace(",", "."),
+        loading: state.order.loading
     };
 };
 
-export default connect(mapStateToProps)(ContactData);
+const mapDispatchToProps = dispatch => {
+    return {
+        onOrderBurger: orderData => dispatch(actions.purchaseBurger(orderData)),
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(ContactData, axios));
