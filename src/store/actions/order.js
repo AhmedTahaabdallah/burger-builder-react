@@ -8,10 +8,11 @@ export const purchaseBurgerSuccess = (id, orderData) => {
     };
 }
 
-export const purchaseBurgerFail = (error) => {
+export const purchaseBurgerFail = (status, error) => {
     return {
         type: actionTypes.PURCHASE_BURGER_FAIL,
-        error: error
+        error: error,
+        status: +status
     };
 }
 
@@ -21,7 +22,7 @@ export const purchaseBurgerStart = () => {
     };
 };
 
-export const purchaseBurger = (orderData) => {
+export const purchaseBurger = (orderData, token) => {
     return dispatch => {
         dispatch(purchaseBurgerStart());
         const data = {            
@@ -35,13 +36,28 @@ export const purchaseBurger = (orderData) => {
             `,
             variables: orderData,  
         };
-        axios.post('/graphql', data)
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+        axios.post('/graphql', data, {
+            headers: headers
+        })
         .then(response => {
-            dispatch(purchaseBurgerSuccess(response.data.data.createNewOrder.orderId, orderData));
+            console.log(response.data);            
+            if(response.data.data.createNewOrder.status === 401) {
+                dispatch(purchaseBurgerFail(response.data.data.createNewOrder.status, response.data.data.createNewOrder.msg));
+            } else if(response.data.data.createNewOrder.status === 200) {
+                dispatch(purchaseBurgerSuccess(response.data.data.createNewOrder.orderId, orderData));
+            } else {
+                dispatch(purchaseBurgerFail(response.data.data.createNewOrder.status, response.data.data.createNewOrder.msg));
+            }
+            
         })
         .catch(err => {
             console.log(err);
-            dispatch(purchaseBurgerFail(err));
+            dispatch(purchaseBurgerFail(201, err));
         });
     };
 }
@@ -59,10 +75,11 @@ export const fetchOrdersSuccess = (orders) => {
     };
 };
 
-export const fetchOrdersFail = (error) => {
+export const fetchOrdersFail = (status, error) => {
     return {
         type: actionTypes.FETCH_ORDERS_FAIL,
-        error: error
+        error: error,
+        status: +status
     };
 };
 
@@ -72,54 +89,80 @@ export const fetchOrdersStart = () => {
     };
 };
 
-export const fetchOrders = () => {    
+export const fetchOrders = (token) => {    
     return dispatch => {
         dispatch(fetchOrdersStart());
         const data = {            
             query: `
                 {
                     getAllOrders {
-                        id
-                        price
-                        deliveryMethod
-                        ingredients
-                        customer {
-                            name
-                            email
-                            address {
-                                street
-                                country
-                                zipCode
+                        status
+                        msg
+                        allOrders {
+                            id
+                            price
+                            deliveryMethod
+                            ingredients
+                            customer {
+                                name
+                                email
+                                address {
+                                    street
+                                    country
+                                    zipCode
+                                }
                             }
                         }
                     }
                 }
             `, 
         };
-        axios.post('/graphql', data)
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+        console.log('headers : ', headers);
+        axios.post('/graphql', data, {
+            'headers': headers
+        })
         .then(response => {
             if(response){
                 if(response.data) {
                     if(response.data.data) {
                         if(response.data.data.getAllOrders){
                             console.log(response.data.data.getAllOrders);
-                            dispatch(fetchOrdersSuccess([...response.data.data.getAllOrders]));
+                            if(+response.data.data.getAllOrders.status === 401) {
+                                dispatch(fetchOrdersFail(response.data.data.getAllOrders.status, response.data.data.getAllOrders.msg));
+                                return 401;
+                            } else if(+response.data.data.getAllOrders.status === 200) {
+                                dispatch(fetchOrdersSuccess([...response.data.data.getAllOrders.allOrders]));
+                            } else {
+                                dispatch(fetchOrdersFail(response.data.data.getAllOrders.status, response.data.data.getAllOrders.msg));
+                            }                            
                         } else {
-                            dispatch(fetchOrdersFail());
+                            dispatch(fetchOrdersFail(201, 'error1'));
                         } 
                     } else {
-                        dispatch(fetchOrdersFail());
+                        dispatch(fetchOrdersFail(201, 'error2'));
                     }                 
                 } else {
-                    dispatch(fetchOrdersFail());
+                    dispatch(fetchOrdersFail(201, 'error3'));
                 } 
             } else {
-                dispatch(fetchOrdersFail());
+                dispatch(fetchOrdersFail(201, 'error4'));
             } 
         })
         .catch(err => {
             console.log(err);
-            dispatch(fetchOrdersFail());
+            dispatch(fetchOrdersFail(201, err));
         });
+    };
+};
+
+export const changeOrderStatus = (status) => {
+    return {
+        type: actionTypes.CHANGE_ORDERS_STATUS,
+        status: status
     };
 };

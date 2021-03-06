@@ -8,6 +8,7 @@ import Spinner from '../../../components/UI/Spinner/Spinner';
 import Input from '../../../components/UI/Input/Input';
 import withErrorHandler from '../../../hoc/withErrorHandler/withErrorHandler';
 import * as actions from '../../../store/actions/index';
+import { inputChange, isIngredientsCount } from '../../../helper-functions/helper-functions';
 
 class ContactData extends Component {
     state = {
@@ -72,7 +73,7 @@ class ContactData extends Component {
                 elementType: 'input',
                 value: '',
                 elementConfig: {
-                    type: 'text',
+                    type: 'number',
                     placeholder: 'ZIP Code'
                 },
                 validation: {
@@ -97,55 +98,48 @@ class ContactData extends Component {
         formIsValid: false,
     }
 
-    orderHandler = (event) => {
-        event.preventDefault();
-        const formData = {
-            price: parseFloat(this.props.totalPrice),
-            ingredients: this.props.ings,
-        };
-        for(let formElementIdentifier in this.state.orderForm) {
-            formData[formElementIdentifier] = this.state.orderForm[formElementIdentifier].value;
+    componentDidMount() {
+        if(this.props.user) {
+            console.log('user : ', this.props.user);
+            console.log('state : ', this.state.orderForm);
+            let inputChanges = inputChange(this.props.user.username, this.state.orderForm, 'name');
+            inputChanges = inputChange(this.props.user.email, inputChanges.controls, 'email');
+            this.setState({ orderForm: inputChanges.controls, formIsValid: inputChanges.formIsValid });
         }
-        this.props.onOrderBurger(formData);        
     }
 
-    checkValidity(value, rules) {
-        let isValid = true;
-        if(!rules) {
-            return true;
+    shouldComponentUpdate(nextProps, nextState) {        
+        if(nextProps.status === 401){
+            console.log('sdsd');
+            this.props.onSetAuthRedirectPath(['/checkout', '/checkout/contact-data']);
+            this.props.onChangeOrderStatus(200);
+            this.props.onAuthLogout();
+            this.props.history.push('/auth');
+            return false;
         }
-        if(rules.required) {
-            isValid = value.trim() !== '' && isValid;
-        }
-        if(rules.minLength) {
-            isValid = value.trim().length >= rules.minLength && isValid;
-        }
-        if(rules.maxLength) {
-            isValid = value.trim().length <= rules.maxLength && isValid;
-        }
-        if(rules.isEmail) {
-            const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; // eslint-disable-line
-            isValid = re.test(value) && isValid;
-        }
-        return isValid;
+        return this.props !== nextProps || this.state !== nextState;
+    }
+
+    orderHandler = (event) => {
+        event.preventDefault();
+        if(this.props.user && this.props.user.tokken) {
+            const formData = {
+                price: parseFloat(this.props.totalPrice),
+                ingredients: this.props.ings,
+            };
+            for(let formElementIdentifier in this.state.orderForm) {
+                formData[formElementIdentifier] = this.state.orderForm[formElementIdentifier].value;
+            }
+            console.log(formData);
+            this.props.onOrderBurger(formData, this.props.user.tokken); 
+        } else {
+            this.props.onPurchaseBurgerFail('Not Auth....');
+        }            
     }
 
     inputChangeHandler = (event, inputIdentifier) => {
-        const updatedOrderForm = { ...this.state.orderForm };
-        const updatedFormElement = { ...updatedOrderForm[inputIdentifier] };
-        updatedFormElement.value = event.target.value;
-        updatedFormElement.valid = this.checkValidity(updatedFormElement.value, updatedFormElement.validation);
-        updatedFormElement.touched = true;
-        updatedOrderForm[inputIdentifier] = updatedFormElement;
-
-        let formIsValid = true;
-        for(let inputtIdentifier in updatedOrderForm) {
-            if(updatedOrderForm[inputtIdentifier].valid !== undefined) {
-                formIsValid = updatedOrderForm[inputtIdentifier].valid && formIsValid;
-            }            
-        }
-
-        this.setState({ orderForm: updatedOrderForm, formIsValid: formIsValid });
+        const inputChanges = inputChange(event.target.value, this.state.orderForm, inputIdentifier);
+        this.setState({ orderForm: inputChanges.controls, formIsValid: inputChanges.formIsValid });
     };
 
     render() {
@@ -170,7 +164,9 @@ class ContactData extends Component {
                         changed={event => this.inputChangeHandler(event, formElement.id)} 
                     />
                 ))}
-                <Button btnType='Success' disabled={!this.state.formIsValid}>Order</Button>
+                {this.props.error ? <p>{this.props.error}</p> : null}
+                <Button btnType='Success' 
+                disabled={!this.state.formIsValid || !isIngredientsCount(this.props.ings)}>Order</Button>
             </form>
         );
         if(this.props.loading){
@@ -189,13 +185,20 @@ const mapStateToProps = state => {
     return {
         ings: state.burgerBuilder.ingredients,
         totalPrice: state.burgerBuilder.totalPrice.toFixed(2).replace(",", "."),
-        loading: state.order.loading
+        loading: state.order.loading,
+        status: state.order.status,
+        error: state.order.error,
+        user: state.auth.user,
     };
 };
 
 const mapDispatchToProps = dispatch => {
     return {
-        onOrderBurger: orderData => dispatch(actions.purchaseBurger(orderData)),
+        onOrderBurger: (orderData, token) => dispatch(actions.purchaseBurger(orderData, token)),
+        onPurchaseBurgerFail: (error) => dispatch(actions.purchaseBurgerFail(error)),
+        onAuthLogout: () => dispatch(actions.logout()),
+        onChangeOrderStatus: (status) => dispatch(actions.changeOrderStatus(status)),
+        onSetAuthRedirectPath: (path) => dispatch(actions.setAuthRedirectPath(path)),
     };
 };
 

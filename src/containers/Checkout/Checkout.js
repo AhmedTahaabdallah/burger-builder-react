@@ -5,9 +5,17 @@ import { isIngredientsCount } from '../../helper-functions/helper-functions';
 
 import CheckoutSummary from '../../components/Order/CheckoutSummary/CheckoutSummary';
 import ContactData from './ContactData/ContactData';
+import * as actions from '../../store/actions/index';
 
 class Checkout extends Component {
 
+    componentDidMount() {
+        if(!this.props.isAuth) {
+            this.props.onSetAuthRedirectPath(['/checkout', '/checkout']);
+            this.props.history.push('/auth');
+        }
+    }
+    
     checkoutCancelledHandler = () => {
         this.props.history.goBack();
     }
@@ -16,30 +24,35 @@ class Checkout extends Component {
         this.props.history.replace('/checkout/contact-data');
     }
 
-    render() {
-        let summary = <Redirect to='/'/>;
-        if(this.props.ings) {
-            //const purchasedRedirect = this.props.purchased ? <Redirect to='/'/> : null;
-            summary = <div>
-                {/*{purchasedRedirect}*/}
+    render() {      
+        const purchasedRedirect = this.props.purchased ? <Redirect to='/'/> : null;
+        return (
+            <div>
+                {purchasedRedirect}
                 <CheckoutSummary 
-                ingredients={this.props.ings}
+                ingredients={this.props.ings ? this.props.ings : {}}
                 isIngredientsCount={isIngredientsCount(this.props.ings)}
                 checkoutCancelled={this.checkoutCancelledHandler}
                 checkoutContinued={this.checkoutContinuedHandler}/>
                 <Route path={this.props.match.path + '/contact-data'}
                 component={ContactData} />                
-            </div>;
-        }
-        return summary;
+            </div>
+        );
     }
 }
 
 const mapStateToProps = state => {
     return {
         ings: state.burgerBuilder.ingredients,
-        purchased: state.order.purchased
+        purchased: state.order.purchased,
+        isAuth: state.auth.user !== null,
     };
 };
 
-export default connect(mapStateToProps)(Checkout);
+const mapDispatchToProps = dispatch => {
+    return {
+        onSetAuthRedirectPath: (path) => dispatch(actions.setAuthRedirectPath(path)),
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Checkout);

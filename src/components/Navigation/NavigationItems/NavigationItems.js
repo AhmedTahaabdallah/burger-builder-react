@@ -5,8 +5,12 @@ import NavigationItem from './NavigationItem/NavigationItem';
 const navigationItems = props => (
     <ul className={cssClasses.NavigationItems}>
         <NavigationItem link='/' >Burger Builder</NavigationItem>
-        <NavigationItem link='/orders'>Orders</NavigationItem>
-        <NavigationItem link='/checkout'>Checkout</NavigationItem>
+        {props.isAuth ? <NavigationItem link='/orders'>Orders</NavigationItem> : null}
+        {props.isAuth ? <NavigationItem link='/checkout'>Checkout</NavigationItem> : null}
+        {props.isAuth ? 
+            <NavigationItem link='/logout'>Logout</NavigationItem>
+            : <NavigationItem link='/auth'>Login</NavigationItem>        
+        }
     </ul>
 );
 
