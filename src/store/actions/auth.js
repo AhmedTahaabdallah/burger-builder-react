@@ -39,7 +39,7 @@ export const logout = () => {
 };
 
 export const auth = (formData, isSignup) => {
-    return dispatch => {        
+    return dispatch => {   
         dispatch(authStart());
         let query = `
             mutation userLogin($email: String!, $password: String!){
