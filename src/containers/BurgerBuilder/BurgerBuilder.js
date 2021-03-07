@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { isIngredientsCount } from '../../helper-functions/helper-functions';
+import { isIngredientsCount } from '../../shared/utility';
 
 import Aux from '../../hoc/Aux/Aux';
 import Burger from '../../components/Burger/Burger';

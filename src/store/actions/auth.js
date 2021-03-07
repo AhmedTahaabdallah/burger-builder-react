@@ -1,5 +1,7 @@
 import * as actionTypes from './actionTypes';
 import axios from '../../axios-orders';
+import { setlocalStorageItem, getlocalStorageItem} from '../../shared/utility';
+
 
 export const authStart = () => {
     return {
@@ -7,8 +9,9 @@ export const authStart = () => {
     };
 };
 
-export const authSuccess = (authData) => {
-    localStorage.setItem('userData', JSON.stringify(authData));
+export const authSuccess = (authData) => {    
+    setlocalStorageItem('userData', authData);
+    //setlocalStorageItem('username', authData.username, false);
     const userData = {
         username: authData.username,
         email: authData.email,
@@ -66,7 +69,6 @@ export const auth = (formData, isSignup) => {
             if(response){
                 if(response.data) {
                     if(response.data.data) {
-                        console.log(response.data.data);
                         if(response.data.data.userLogin){
                             if(+response.data.data.userLogin.status === 200) {
                                 dispatch(authSuccess({...response.data.data.userLogin, email: eamil}));
@@ -93,7 +95,6 @@ export const auth = (formData, isSignup) => {
             } 
         })
         .catch(err => {
-            console.log(err);
             dispatch(authFail(err));
         });
     }
@@ -108,10 +109,13 @@ export const setAuthRedirectPath = (path) => {
 
 export const authCheckState = () => {
     return dispatch => {
-        const userData = localStorage.getItem('userData');
+        // const username = getlocalStorageItem('username', false);
+        // if(username) {
+        //     console.log('username : ', username);
+        // }
+        const userData = getlocalStorageItem('userData');
         if(userData) {
-            const finalData = JSON.parse(userData);
-            dispatch(authSuccess(finalData));
+            dispatch(authSuccess(userData));
         }
     };
 };

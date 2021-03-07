@@ -50,7 +50,6 @@ export const initIngredients = () => {
         };
         axios.post('/graphql', data)
         .then(response => {
-            console.log(response.data.data.getAllIngredients);
             if(response){
                 if(response.data) {
                     if(response.data.data) {
@@ -73,7 +72,6 @@ export const initIngredients = () => {
             }        
         })
         .catch(err => {
-            console.log(err);
             dispatch(fetchIngrediensFailed());
         });
     };

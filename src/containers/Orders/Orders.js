@@ -20,7 +20,6 @@ class Orders extends Component {
 
     shouldComponentUpdate(nextProps, nextState) {        
         if(nextProps.status === 401){
-            console.log('sdsd');
             this.props.onSetAuthRedirectPath(['/orders', '/orders']);
             this.props.onChangeOrderStatus(200);
             this.props.onAuthLogout();
@@ -28,6 +27,7 @@ class Orders extends Component {
             return false;
         }
         return this.props !== nextProps;
+        //return true;
     }
 
     render() {

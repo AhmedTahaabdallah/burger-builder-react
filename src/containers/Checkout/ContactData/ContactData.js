@@ -8,7 +8,7 @@ import Spinner from '../../../components/UI/Spinner/Spinner';
 import Input from '../../../components/UI/Input/Input';
 import withErrorHandler from '../../../hoc/withErrorHandler/withErrorHandler';
 import * as actions from '../../../store/actions/index';
-import { inputChange, isIngredientsCount } from '../../../helper-functions/helper-functions';
+import { inputChange, isIngredientsCount } from '../../../shared/utility';
 
 class ContactData extends Component {
     state = {
@@ -100,8 +100,6 @@ class ContactData extends Component {
 
     componentDidMount() {
         if(this.props.user) {
-            console.log('user : ', this.props.user);
-            console.log('state : ', this.state.orderForm);
             let inputChanges = inputChange(this.props.user.username, this.state.orderForm, 'name');
             inputChanges = inputChange(this.props.user.email, inputChanges.controls, 'email');
             this.setState({ orderForm: inputChanges.controls, formIsValid: inputChanges.formIsValid });
@@ -110,7 +108,6 @@ class ContactData extends Component {
 
     shouldComponentUpdate(nextProps, nextState) {        
         if(nextProps.status === 401){
-            console.log('sdsd');
             this.props.onSetAuthRedirectPath(['/checkout', '/checkout/contact-data']);
             this.props.onChangeOrderStatus(200);
             this.props.onAuthLogout();
@@ -130,7 +127,6 @@ class ContactData extends Component {
             for(let formElementIdentifier in this.state.orderForm) {
                 formData[formElementIdentifier] = this.state.orderForm[formElementIdentifier].value;
             }
-            console.log(formData);
             this.props.onOrderBurger(formData, this.props.user.tokken); 
         } else {
             this.props.onPurchaseBurgerFail('Not Auth....');

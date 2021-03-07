@@ -44,11 +44,10 @@ export const purchaseBurger = (orderData, token) => {
         axios.post('/graphql', data, {
             headers: headers
         })
-        .then(response => {
-            console.log(response.data);            
-            if(response.data.data.createNewOrder.status === 401) {
+        .then(response => {         
+            if(+response.data.data.createNewOrder.status === 401) {
                 dispatch(purchaseBurgerFail(response.data.data.createNewOrder.status, response.data.data.createNewOrder.msg));
-            } else if(response.data.data.createNewOrder.status === 200) {
+            } else if(+response.data.data.createNewOrder.status === 200) {
                 dispatch(purchaseBurgerSuccess(response.data.data.createNewOrder.orderId, orderData));
             } else {
                 dispatch(purchaseBurgerFail(response.data.data.createNewOrder.status, response.data.data.createNewOrder.msg));
@@ -56,7 +55,6 @@ export const purchaseBurger = (orderData, token) => {
             
         })
         .catch(err => {
-            console.log(err);
             dispatch(purchaseBurgerFail(201, err));
         });
     };
@@ -122,7 +120,6 @@ export const fetchOrders = (token) => {
             'Accept': 'application/json',
             'Authorization': `Bearer ${token}`
         };
-        console.log('headers : ', headers);
         axios.post('/graphql', data, {
             'headers': headers
         })
@@ -131,7 +128,6 @@ export const fetchOrders = (token) => {
                 if(response.data) {
                     if(response.data.data) {
                         if(response.data.data.getAllOrders){
-                            console.log(response.data.data.getAllOrders);
                             if(+response.data.data.getAllOrders.status === 401) {
                                 dispatch(fetchOrdersFail(response.data.data.getAllOrders.status, response.data.data.getAllOrders.msg));
                                 return 401;
@@ -154,7 +150,6 @@ export const fetchOrders = (token) => {
             } 
         })
         .catch(err => {
-            console.log(err);
             dispatch(fetchOrdersFail(201, err));
         });
     };
