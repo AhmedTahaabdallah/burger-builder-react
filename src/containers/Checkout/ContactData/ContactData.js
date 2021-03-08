@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { Redirect } from 'react-router-dom';
 
 import Button from '../../../components/UI/Button/Button';
 import cssClasses from './ContactData.css';
@@ -168,8 +169,13 @@ class ContactData extends Component {
         if(this.props.loading){
             form = <Spinner />
         }
+        let redirectCheckout = null;
+        if(!isIngredientsCount(this.props.ings)) {
+            redirectCheckout = <Redirect to='/checkout'/>;
+        }
         return (
             <div className={cssClasses.ContactData}>
+                {redirectCheckout}
                 <h4>Enter your contact data</h4>
                 {form}
             </div>

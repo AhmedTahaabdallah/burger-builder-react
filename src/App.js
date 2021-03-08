@@ -25,21 +25,20 @@ const asyncLogout = asyncComponent(() => {
 
 class App extends Component {
   componentDidMount() {
-    this.props.onAuthCheckState();
-    this.props.history.replace(this.props.location.pathname);
+    this.props.onAuthCheckState(); 
   }
 
   render() {
     return (
       <div>
         <Layout>
-          {!this.props.isAuth ?
+          {/*!this.props.isAuth ?
             <Switch>
                 <Route path='/auth' component={asyncAuth}/>
                 <Route path='/' exact component={BurgerBuilder}/>
                 <Redirect to='/'/>
             </Switch>
-            : <Switch>
+            : */<Switch>
                 <Route path='/auth' component={asyncAuth}/>
                 <Route path='/checkout' component={asyncCheckout}/>
                 <Route path='/orders' component={asyncOrders}/>

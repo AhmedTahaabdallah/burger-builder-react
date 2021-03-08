@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@wojtekmaj/enzyme-adapter-react-17": "^0.4.1",
     "autoprefixer": "7.1.6",
     "axios": "^0.21.1",
     "babel-core": "6.26.0",
@@ -100,5 +99,8 @@
   },
   "eslintConfig": {
     "extends": "react-app"
+  },
+  "devDependencies": {
+    "@wojtekmaj/enzyme-adapter-react-17": "^0.4.1"
   }
 }
