@@ -3,7 +3,6 @@ import Logo from '../../Logo/Logo';
 import NavigationItems from '../NavigationItems/NavigationItems';
 import cssClasses from './SideDrawer.css';
 import Backdrop from '../../UI/Backdrop/Backdrop';
-import Aux from '../../../hoc/Aux/Aux';
 
 const sideDrawer = props => {
     let attachedClasses = [cssClasses.SideDrawer, cssClasses.Close];
@@ -11,7 +10,7 @@ const sideDrawer = props => {
         attachedClasses = [cssClasses.SideDrawer, cssClasses.Open];
     }
     return (
-        <Aux>
+        <React.Fragment>
             <Backdrop show={props.open} clicked={props.closed}/>
             <div className={attachedClasses.join(' ')}>
             <div className={cssClasses.Logo} onClick={props.closed}>
@@ -21,7 +20,7 @@ const sideDrawer = props => {
                 <NavigationItems isAuth={props.isAuth}/>
             </nav>
         </div>
-        </Aux>        
+        </React.Fragment>        
     );
 };
 

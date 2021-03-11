@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
 
 import Order from '../../components/Order/Order';
@@ -7,57 +7,55 @@ import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
 import Spinner from '../../components/UI/Spinner/Spinner';
 import * as actions from '../../store/actions/index';
 
-class Orders extends Component {
+const orders = React.memo(props => {
+    const { isAuth, onSetAuthRedirectPath, history, user, onFetchOrders } = props;
 
-    componentDidMount() {
-        if(!this.props.isAuth) {
-            this.props.onSetAuthRedirectPath(['/orders', '/orders']);
-            this.props.history.push('/auth');
-        } else if(this.props.user && this.props.user.tokken) {
-            this.props.onFetchOrders(this.props.user.tokken);
-        }        
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {        
-        if(nextProps.status === 401){
-            this.props.onSetAuthRedirectPath(['/orders', '/orders']);
-            this.props.onChangeOrderStatus(200);
-            this.props.onAuthLogout();
-            this.props.history.push('/auth');
-            return false;
-        }
-        return this.props !== nextProps;
-        //return true;
-    }
-
-    render() {
-        let orders = null;
-        if(this.props.user && this.props.user.tokken) {
-            if(this.props.loading) {
-                orders = <div style={{ marginTop: '300px'}}><Spinner /></div>; 
-            } else if(this.props.error) {
-            orders = <p style={{ textAlign: 'center', marginTop: '300px'}}>{this.props.error}</p> ;
-            } else {
-                if(this.props.allOrders.length > 0) {
-                    orders = this.props.allOrders.map(order => {
-                        return <Order
-                            key={order.id}
-                            price={order.price}
-                            ingredients={order.ingredients}
-                        />;
-                    });
-                } else {
-                    orders = <p style={{ textAlign: 'center', marginTop: '300px'}}>There is no Orders...</p> ;
-                }            
-            }
+    useEffect(() => {
+        if(!isAuth) {
+            onSetAuthRedirectPath(['/orders', '/orders']);
+            history.push('/auth');
+        } else if(user && user.tokken) {
+            onFetchOrders(user.tokken);
+        }  
+    }, [ isAuth, onSetAuthRedirectPath, history, user, onFetchOrders ]);
+    
+    let orders = null;
+    if(props.user && props.user.tokken) {
+        if(props.loading) {
+            orders = <div style={{ marginTop: '300px'}}><Spinner /></div>; 
+        } else if(props.error) {
+        orders = <p style={{ textAlign: 'center', marginTop: '300px'}}>{props.error}</p> ;
         } else {
-            orders = <p style={{ textAlign: 'center', marginTop: '300px'}}>not auth!</p> ;
+            if(props.allOrders.length > 0) {
+                orders = props.allOrders.map(order => {
+                    return <Order
+                        key={order.id}
+                        price={order.price}
+                        ingredients={order.ingredients}
+                    />;
+                });
+            } else {
+                orders = <p style={{ textAlign: 'center', marginTop: '300px'}}>There is no Orders...</p> ;
+            }            
         }
-        return (<div>
-            {orders}
-        </div>);
+    } else {
+        orders = <p style={{ textAlign: 'center', marginTop: '300px'}}>not auth!</p> ;
     }
-}
+    return (<div>
+        {orders}
+    </div>);
+},
+(prevProps, nextProps) => {        
+    if(nextProps.status === 401){
+        prevProps.onSetAuthRedirectPath(['/orders', '/orders']);
+        prevProps.onChangeOrderStatus(200);
+        prevProps.onAuthLogout();
+        prevProps.history.push('/auth');
+        return true;
+    }
+    return prevProps === nextProps;
+    //return false;
+});
 
 const mapStateToProps = state => {
     return {
@@ -79,4 +77,4 @@ const mapDispatchToProps = dispatch => {
     };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(Orders, axios));
+export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(orders, axios));
