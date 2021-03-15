@@ -9,7 +9,13 @@ export const authStart = () => {
     };
 };
 
-export const authSuccess = (authData) => {    
+export const resetAuthErrorMsg = () => {
+    return {
+        type: actionTypes.RESET_AUTH_ERROR_MSG
+    };
+};
+
+export const authSuccess = (authData, msg) => {    
     setlocalStorageItem('userData', authData);
     //setlocalStorageItem('username', authData.username, false);
     const userData = {
@@ -20,14 +26,15 @@ export const authSuccess = (authData) => {
     };
     return {
         type: actionTypes.AUTH_SUCCESS,
-        user: userData
+        user: userData, 
+        msg: msg
     };
 };
 
 export const authFail = (error) => {
     return {
         type: actionTypes.AUTH_FAIL,
-        error: error
+        msg: error
     };
 };
 
@@ -38,7 +45,7 @@ export const logout = () => {
     };
 };
 
-export const auth = (formData, isSignup) => {
+export const auth = (formData, isSignup,) => {
     return dispatch => {   
         dispatch(authStart());
         let query = `
@@ -71,13 +78,13 @@ export const auth = (formData, isSignup) => {
                     if(response.data.data) {
                         if(response.data.data.userLogin){
                             if(+response.data.data.userLogin.status === 200) {
-                                dispatch(authSuccess({...response.data.data.userLogin, email: eamil}));
+                                dispatch(authSuccess({...response.data.data.userLogin, email: eamil}, response.data.data.userLogin.msg));
                             } else {
                                 dispatch(authFail(response.data.data.userLogin.msg));
                             }                            
                         } else if(response.data.data.createNewUser){
                             if(+response.data.data.createNewUser.status === 200) {
-                                dispatch(authSuccess({...response.data.data.createNewUse, email: eamil}));
+                                dispatch(authSuccess({...response.data.data.createNewUse, email: eamil}, response.data.data.createNewUser.msg));
                             } else {
                                 dispatch(authFail(response.data.data.createNewUser.msg));
                             }  
@@ -115,7 +122,7 @@ export const authCheckState = () => {
         // }
         const userData = getlocalStorageItem('userData');
         if(userData) {
-            dispatch(authSuccess(userData));
+            dispatch(authSuccess(userData, null));
         }
     };
 };

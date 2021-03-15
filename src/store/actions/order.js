@@ -1,17 +1,24 @@
 import * as actionTypes from './actionTypes';
 import axios from '../../axios-orders';
 
-export const purchaseBurgerSuccess = (id, orderData) => {
+export const resetOrderErrorMsg = () => {
+    return {
+        type: actionTypes.RESET_ORDER_ERROR_MSG,
+    };
+}
+
+export const purchaseBurgerSuccess = (id, orderData, msg) => {
     return {
         type: actionTypes.PURCHASE_BURGER_SUCCESS,
+        msg: msg,
         newOrder: {id: id, ...orderData}
     };
 }
 
-export const purchaseBurgerFail = (status, error) => {
+export const purchaseBurgerFail = (status, msg) => {
     return {
         type: actionTypes.PURCHASE_BURGER_FAIL,
-        error: error,
+        msg: msg,
         status: +status
     };
 }
@@ -48,7 +55,7 @@ export const purchaseBurger = (orderData, token) => {
             if(+response.data.data.createNewOrder.status === 401) {
                 dispatch(purchaseBurgerFail(response.data.data.createNewOrder.status, response.data.data.createNewOrder.msg));
             } else if(+response.data.data.createNewOrder.status === 200) {
-                dispatch(purchaseBurgerSuccess(response.data.data.createNewOrder.orderId, orderData));
+                dispatch(purchaseBurgerSuccess(response.data.data.createNewOrder.orderId, orderData, response.data.data.createNewOrder.msg));
             } else {
                 dispatch(purchaseBurgerFail(response.data.data.createNewOrder.status, response.data.data.createNewOrder.msg));
             }
@@ -73,10 +80,10 @@ export const fetchOrdersSuccess = (orders) => {
     };
 };
 
-export const fetchOrdersFail = (status, error) => {
+export const fetchOrdersFail = (status, msg) => {
     return {
         type: actionTypes.FETCH_ORDERS_FAIL,
-        error: error,
+        msg: msg,
         status: +status
     };
 };

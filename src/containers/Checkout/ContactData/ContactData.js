@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 
 import Button from '../../../components/UI/Button/Button';
 import cssClasses from './ContactData.css';
@@ -12,6 +13,9 @@ import * as actions from '../../../store/actions/index';
 import { inputChange, isIngredientsCount } from '../../../shared/utility';
 
 const contactData = React.memo(props => {
+    const dispatch = useDispatch();
+    const onShowSuccessSnackbar = (msg) => dispatch(actions.showSuccessSnackbar(msg));
+    const onShowErrorSnackbar = (msg) => dispatch(actions.showErrorSnackbar(msg));
     const [ orderForm, setOrderForm] = useState({            
         name: {
             elementType: 'input',
@@ -107,6 +111,23 @@ const contactData = React.memo(props => {
         }
     }, [ user ]);
 
+    const mounted = useRef();
+    useEffect(() => {
+        if (!mounted.current) {
+            // do componentDidMount logic
+            mounted.current = true;
+        } else {
+            // do componentDidUpdate logic
+            if(props.error) {
+                onShowErrorSnackbar(props.msg);
+                props.onResetOrderErrorMsg();
+            } else if(!props.error && props.msg) {
+                onShowSuccessSnackbar(props.msg);
+                props.onResetOrderErrorMsg();
+            }
+        }
+    });
+
     const orderHandler = (event) => {
         event.preventDefault();
         if(props.user && props.user.tokken) {
@@ -150,7 +171,6 @@ const contactData = React.memo(props => {
                     changed={event => inputChangeHandler(event, formElement.id)} 
                 />
             ))}
-            {props.error ? <p>{props.error}</p> : null}
             <Button btnType='Success' 
             disabled={!formIsValid || !isIngredientsCount(props.ings)}>Order</Button>
         </form>
@@ -188,12 +208,14 @@ const mapStateToProps = state => {
         loading: state.order.loading,
         status: state.order.status,
         error: state.order.error,
+        msg: state.order.msg,
         user: state.auth.user,
     };
 };
 
 const mapDispatchToProps = dispatch => {
     return {
+        onResetOrderErrorMsg: () => dispatch(actions.resetOrderErrorMsg()),
         onOrderBurger: (orderData, token) => dispatch(actions.purchaseBurger(orderData, token)),
         onPurchaseBurgerFail: (error) => dispatch(actions.purchaseBurgerFail(error)),
         onAuthLogout: () => dispatch(actions.logout()),

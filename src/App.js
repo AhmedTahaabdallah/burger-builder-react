@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import Layout from './hoc/Layout/Layout';
 import BurgerBuilder from './containers/BurgerBuilder/BurgerBuilder';
 import * as actions from './store/actions/index';
+import ShowSnackbar from './components/UI/ShowSnackbar/ShowSnackbar';
 
 const Checkout = React.lazy(() => {
   return import('./containers/Checkout/Checkout');
@@ -32,6 +33,7 @@ const app = props => {
     <div>
       <Layout>
         <Suspense fallback={<p>Loading....</p>}>
+          <ShowSnackbar />
           {<Switch>
                 <Route path='/auth' render={(props) => <Auth {...props}/>}/>
                 <Route path='/checkout' render={(props) => <Checkout {...props}/>}/>

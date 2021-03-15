@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch } from 'react-redux';
 import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 
@@ -14,6 +15,9 @@ import axios from '../../axios-orders';
 import * as actions from '../../store/actions/index';
 
 const auth = props => {
+    const dispatch = useDispatch();
+    const onShowSuccessSnackbar = (msg) => dispatch(actions.showSuccessSnackbar(msg));
+    const onShowErrorSnackbar = (msg) => dispatch(actions.showErrorSnackbar(msg));
     const [ authForm, setAuthForm ] = useState({
         username: {
             elementType: 'input',
@@ -69,6 +73,23 @@ const auth = props => {
         }
     }, [ buildingBurger, authRedirectPath, onSetAuthRedirectPath ]);
 
+    const mounted = useRef();
+    useEffect(() => {
+        if (!mounted.current) {
+            // do componentDidMount logic
+            mounted.current = true;
+        } else {
+            // do componentDidUpdate logic
+            if(props.error) {
+                onShowErrorSnackbar(props.msg);
+                props.onResetAuthErrorMsg();
+            } else if(!props.error && props.msg) {
+                onShowSuccessSnackbar(props.msg);
+                props.onResetAuthErrorMsg();
+            }
+        }
+    });
+
     const submitHandler = (event) => {
         event.preventDefault();
         const formData = {};
@@ -79,7 +100,7 @@ const auth = props => {
                 formData[formElementIdentifier] = authForm[formElementIdentifier].value;
             }
         }
-        props.onAuth(formData, isSignup);        
+        props.onAuth(formData, isSignup,);        
     }
 
     const switchAuthModeHandler = () => {
@@ -148,7 +169,6 @@ const auth = props => {
                     changed={event => inputChangeHandler(event, formElement.id)} 
                 />
             ))}
-            {props.error ? <p>{props.error}</p> : null}
             <Button btnType='Success' disabled={!formIsValid}>{!isSignup ? 'Login' : 'Signup'}</Button>
         </form>
     );
@@ -172,6 +192,7 @@ const auth = props => {
 const mapStateToProps = state => {
     return {
         error: state.auth.error,
+        msg: state.auth.msg,
         loading: state.auth.loading,
         isAuth: state.auth.user !== null,
         buildingBurger: state.burgerBuilder.buildingBurger,
@@ -181,6 +202,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
+        onResetAuthErrorMsg: () => dispatch(actions.resetAuthErrorMsg()),
         onAuth: (formData, isSignup) => dispatch(actions.auth(formData, isSignup)),
         onSetAuthRedirectPath: () => dispatch(actions.setAuthRedirectPath(['/auth', '/']))
     };

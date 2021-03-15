@@ -24,7 +24,7 @@ const orders = React.memo(props => {
         if(props.loading) {
             orders = <div style={{ marginTop: '300px'}}><Spinner /></div>; 
         } else if(props.error) {
-        orders = <p style={{ textAlign: 'center', marginTop: '300px'}}>{props.error}</p> ;
+        orders = <p style={{ textAlign: 'center', marginTop: '300px'}}>{props.msg}</p> ;
         } else {
             if(props.allOrders.length > 0) {
                 orders = props.allOrders.map(order => {
@@ -62,6 +62,7 @@ const mapStateToProps = state => {
         allOrders: state.order.orders,
         loading: state.order.loading,
         error: state.order.error,
+        msg: state.order.msg,
         status: state.order.status,
         user: state.auth.user,
         isAuth: state.auth.user !== null,
